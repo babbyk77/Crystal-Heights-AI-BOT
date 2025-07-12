@@ -1,0 +1,3626 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatty CHIS | Crystal Heights International School</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      :root {
+        --primary-dark: #1a1a2e;
+        --primary-orange: #ff7b25;
+        --accent-yellow: #ffd166;
+        --accent-red: #ef476f;
+        --glass-bg: rgba(255, 255, 255, 0.15);
+        --glass-border: rgba(255, 255, 255, 0.18);
+        --text-light: #f8f9fa;
+        --text-dark: #212529;
+        --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .setting-control option {
+        color: #000;
+        background-color: #fff;
+      }
+
+      .setting-control:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .settings-saved-notice {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary-orange);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .settings-saved-notice.show {
+        opacity: 1;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        color: var(--text-light);
+        min-height: 100vh;
+        padding: 20px;
+        overflow-x: hidden;
+      }
+
+      /* Glassmorphism container */
+      .glass-container {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        max-width: 1200px;
+        margin: 0 auto;
+        height: calc(100vh - 40px);
+        display: flex;
+        flex-direction: column;
+        animation: fadeInUp 0.6s ease-out;
+      }
+
+      /* Header section */
+      .chat-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-dark),
+          rgba(26, 26, 46, 0.8)
+        );
+        padding: 15px 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        z-index: 10;
+      }
+
+      .school-brand {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .school-logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 0 15px rgba(255, 209, 102, 0.3);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.4);
+        }
+        70% {
+          transform: scale(1.05);
+          box-shadow: 0 0 0 10px rgba(255, 209, 102, 0);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(255, 209, 102, 0);
+        }
+      }
+
+      .header-text h2 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.5rem;
+        background: linear-gradient(
+          to right,
+          var(--accent-yellow),
+          var(--primary-orange)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .header-text p {
+        margin: 0;
+        font-size: 0.8rem;
+        opacity: 0.8;
+      }
+
+      .chat-controls {
+        display: flex;
+        gap: 10px;
+      }
+
+      .control-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: var(--text-light);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 16px;
+      }
+
+      .control-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.1);
+      }
+
+      /* Main chat area */
+      .chat-main {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 280px;
+        background: rgba(26, 26, 46, 0.7);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        overflow-y: auto;
+        transition: all 0.3s ease;
+      }
+
+      .sidebar-section {
+        margin-bottom: 25px;
+      }
+
+      /* Login Dropdown Styles */
+      /* Login Dropdown Styles - Compact Version */
+      .login-dropdown {
+        position: relative;
+        display: inline-block;
+        margin-left: 5px; /* Small spacing from other buttons */
+      }
+
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background: rgba(26, 26, 46, 0.95);
+        min-width: 160px; /* Reduced width */
+        border-radius: 8px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .dropdown-content a {
+        color: white;
+        padding: 10px 12px; /* Reduced padding */
+        text-decoration: none;
+        display: block;
+        transition: all 0.3s;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.9rem; /* Smaller font */
+      }
+
+      .dropdown-content a:hover {
+        background: rgba(255, 123, 37, 0.3);
+      }
+
+      .dropdown-content a i {
+        margin-right: 8px; /* Reduced spacing */
+        width: 16px; /* Smaller icons */
+        text-align: center;
+        font-size: 0.9rem;
+      }
+
+      .login-dropdown:hover .dropdown-content {
+        display: block;
+      }
+
+      /* Mobile responsive adjustments */
+      @media (max-width: 768px) {
+        .login-dropdown {
+          position: static;
+        }
+
+        .dropdown-content {
+          right: auto;
+          left: 0;
+          width: 160px; /* Consistent with desktop */
+        }
+
+        .chat-controls {
+          flex-wrap: nowrap; /* Prevent wrapping */
+          overflow: visible; /* Allow dropdown to overflow */
+        }
+      }
+      .sidebar-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--accent-yellow);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sidebar-title i {
+        font-size: 1.1rem;
+      }
+
+      .curriculum-btn {
+        width: 100%;
+        padding: 12px 15px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 123, 37, 0.1);
+        color: var(--text-light);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 10px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-left: 3px solid var(--primary-orange);
+      }
+
+      .curriculum-btn:hover {
+        background: rgba(255, 123, 37, 0.2);
+      }
+
+      .curriculum-btn.active {
+        background: rgba(255, 123, 37, 0.3);
+        border-left: 3px solid var(--accent-yellow);
+      }
+
+      .quick-access-btn {
+        width: 100%;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        background: rgba(239, 71, 111, 0.1);
+        color: var(--text-light);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 8px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-left: 3px solid var(--accent-red);
+      }
+
+      .quick-access-btn:hover {
+        background: rgba(239, 71, 111, 0.2);
+      }
+
+      .subject-list {
+        display: none;
+        margin-top: 10px;
+        padding-left: 15px;
+        border-left: 2px dashed rgba(255, 255, 255, 0.1);
+      }
+
+      .subject-list.active {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .subject-item {
+        padding: 8px 10px;
+        border-radius: 6px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+        color: var(--text-light);
+        opacity: 0.9;
+      }
+
+      .subject-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        opacity: 1;
+      }
+
+      /* Chat area */
+      .chat-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .chat-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        background: rgba(26, 26, 46, 0.3);
+      }
+
+      /* Welcome message */
+      .welcome-message {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 123, 37, 0.1),
+          rgba(239, 71, 111, 0.1)
+        );
+        border-left: 4px solid var(--accent-yellow);
+        padding: 25px;
+        border-radius: 0 15px 15px 0;
+        margin-bottom: 30px;
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      .welcome-message h3 {
+        color: var(--accent-yellow);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .welcome-message p {
+        margin-bottom: 15px;
+        line-height: 1.6;
+      }
+
+      /* Messages */
+      .message {
+        margin-bottom: 20px;
+        max-width: 80%;
+        padding: 15px 20px;
+        border-radius: 15px;
+        position: relative;
+        animation: fadeIn 0.4s ease-out;
+        word-wrap: break-word;
+        line-height: 1.6;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .user-message {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 123, 37, 0.2),
+          rgba(239, 71, 111, 0.2)
+        );
+        margin-left: auto;
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+        border-right: 3px solid var(--primary-orange);
+        color: var(--text-light);
+      }
+
+      .bot-message {
+        background: rgba(255, 255, 255, 0.1);
+        margin-right: auto;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+        border-left: 3px solid var(--accent-yellow);
+        color: var(--text-light);
+      }
+
+      .message-time {
+        font-size: 0.7rem;
+        opacity: 0.7;
+        margin-top: 8px;
+        text-align: right;
+      }
+
+      .message-source {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        margin-top: 5px;
+        font-size: 0.7rem;
+        color: var(--text-light);
+        opacity: 0.7;
+      }
+
+      .source-icon {
+        margin-left: 5px;
+        font-size: 0.8rem;
+      }
+
+      .database-icon {
+        color: var(--accent-yellow);
+      }
+
+      .ai-icon {
+        color: var(--primary-orange);
+      }
+
+      .document-icon {
+        color: var(--accent-red);
+      }
+
+      /* Formatted responses */
+      .formatted-response {
+        line-height: 1.7;
+        font-size: 0.95rem;
+      }
+
+      .formatted-response h3 {
+        color: var(--accent-yellow);
+        margin: 15px 0 10px 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 5px;
+      }
+
+      .formatted-response h4 {
+        color: var(--primary-orange);
+        margin: 12px 0 8px 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .formatted-response ul,
+      .formatted-response ol {
+        margin: 10px 0 10px 25px;
+        padding-left: 5px;
+      }
+
+      .formatted-response li {
+        margin-bottom: 8px;
+        line-height: 1.5;
+      }
+
+      .formatted-response blockquote {
+        background: rgba(255, 123, 37, 0.1);
+        border-left: 3px solid var(--primary-orange);
+        padding: 10px 15px;
+        margin: 15px 0;
+        font-style: italic;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .formatted-response strong {
+        font-weight: 600;
+        color: var(--accent-yellow);
+      }
+
+      .formatted-response em {
+        font-style: italic;
+      }
+
+      .document-reference {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.2);
+        font-size: 0.85rem;
+        color: var(--accent-yellow);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      /* Message controls */
+      .message-controls {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .message-control-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: var(--text-light);
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .message-control-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Input area */
+      .chat-input-container {
+        padding: 15px 20px;
+        background: rgba(26, 26, 46, 0.7);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+      }
+
+      .input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      #userInput {
+        flex: 1;
+        padding: 15px 20px;
+        padding-right: 120px;
+        border: none;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-light);
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+      }
+
+      #userInput:focus {
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 0 2px var(--primary-orange);
+      }
+
+      #userInput::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .input-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--primary-orange);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 3px 10px rgba(255, 123, 37, 0.3);
+      }
+
+      .input-btn:hover {
+        transform: translateY(-50%) scale(1.1);
+        background: var(--accent-red);
+      }
+
+      .settings-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1002; /* Higher than login dropdown */
+        /* ... rest of your existing settings modal styles ... */
+      }
+
+      .settings-content {
+        z-index: 1003; /* Higher than overlay */
+        /* ... rest of your existing settings content styles ... */
+      }
+
+      .file-upload-btn {
+        right: 60px;
+        background: var(--accent-yellow);
+        color: var(--primary-dark);
+      }
+
+      .voice-btn {
+        right: 110px;
+        background: var(--accent-red);
+      }
+
+      .voice-btn.listening {
+        animation: pulse 1.5s infinite;
+        background: var(--primary-orange);
+      }
+
+      #fileUpload {
+        display: none;
+      }
+
+      .document-active {
+        background: var(--primary-orange) !important;
+        color: white !important;
+      }
+
+      /* Typing indicator */
+      .typing-indicator {
+        display: flex;
+        padding: 12px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        width: fit-content;
+        margin-bottom: 15px;
+        border-left: 3px solid var(--accent-yellow);
+        align-items: center;
+        position: relative;
+      }
+
+      .typing-text {
+        margin-right: 10px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+
+      .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--primary-orange);
+        border-radius: 50%;
+        margin: 0 3px;
+        animation: typingAnimation 1.4s infinite ease-in-out;
+      }
+
+      .typing-dot:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      /* Login Button Styles */
+      .login-container {
+        position: relative;
+        display: inline-block;
+      }
+
+      .login-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: rgba(26, 26, 46, 0.98);
+        min-width: 160px;
+        border-radius: 8px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        z-index: 1001; /* Higher than other popups */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        animation: fadeIn 0.2s ease-out;
+      }
+
+      .login-menu.show {
+        display: block;
+      }
+
+      .login-menu a {
+        color: white;
+        padding: 10px 15px;
+        text-decoration: none;
+        display: block;
+        font-size: 0.9rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.2s;
+      }
+
+      .login-menu a:hover {
+        background: rgba(255, 123, 37, 0.3);
+      }
+
+      .login-menu a i {
+        margin-right: 10px;
+        width: 16px;
+        text-align: center;
+      }
+
+      /* Mobile styles */
+      @media (max-width: 768px) {
+        .login-menu {
+          position: fixed;
+          top: 60px;
+          right: 15px;
+          left: auto;
+          width: 200px;
+        }
+      }
+
+      /* Ensure header stays intact */
+      .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        background: linear-gradient(
+          135deg,
+          var(--primary-dark),
+          rgba(26, 26, 46, 0.8)
+        );
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        z-index: 1000; /* Higher than content */
+      }
+
+      .chat-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        position: relative;
+      }
+
+      @keyframes typingAnimation {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .stop-thinking-btn {
+        position: absolute;
+        right: -25px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--accent-red);
+        color: white;
+        border: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 2;
+      }
+
+      .stop-thinking-btn:hover {
+        transform: translateY(-50%) scale(1.1);
+      }
+
+      /* Stop button */
+      .stop-button {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: var(--accent-red);
+        color: white;
+        border: none;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.3s, transform 0.3s;
+      }
+
+      .stop-button.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .stop-button:hover {
+        background: #d1345b;
+        transform: translateY(0) scale(1.1);
+      }
+
+      .stop-button i {
+        font-size: 20px;
+      }
+
+      /* Settings modal */
+      .settings-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(5px);
+      }
+
+      .settings-content {
+        background: rgba(26, 26, 46, 0.95);
+        padding: 25px;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 0.3s ease-out;
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .settings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .settings-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--accent-yellow);
+        margin: 0;
+      }
+
+      .close-settings {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        cursor: pointer;
+        color: var(--text-light);
+        opacity: 0.7;
+        transition: all 0.3s ease;
+      }
+
+      .close-settings:hover {
+        opacity: 1;
+        transform: rotate(90deg);
+      }
+
+      .settings-tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .settings-tab {
+        padding: 10px 20px;
+        background: none;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        font-weight: 500;
+        opacity: 0.7;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .settings-tab.active {
+        opacity: 1;
+        color: var(--accent-yellow);
+      }
+
+      .settings-tab.active::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: var(--primary-orange);
+        border-radius: 3px 3px 0 0;
+      }
+
+      .settings-tab:hover {
+        opacity: 1;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+        animation: fadeIn 0.4s ease-out;
+      }
+
+      .setting-item {
+        margin-bottom: 20px;
+      }
+
+      .setting-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--text-light);
+      }
+
+      .setting-description {
+        font-size: 0.85rem;
+        opacity: 0.7;
+        margin-bottom: 10px;
+        line-height: 1.5;
+      }
+
+      .setting-control {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-light); /* Changed to ensure visibility */
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .setting-control:focus {
+        border-color: var(--primary-orange);
+        outline: none;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.1);
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: var(--primary-orange);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(30px);
+      }
+
+      .voice-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .voice-option {
+        padding: 15px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .voice-option:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .voice-option.selected {
+        background: rgba(255, 123, 37, 0.2);
+        border-color: var(--primary-orange);
+      }
+
+      .voice-name {
+        font-weight: 500;
+        margin-bottom: 5px;
+        color: var(--text-light);
+      }
+
+      .voice-details {
+        font-size: 0.85rem;
+        opacity: 0.7;
+      }
+
+      /* Improved settings buttons */
+      .settings-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 15px;
+      }
+
+      .settings-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .save-settings-btn {
+        background: var(--primary-orange);
+        color: white;
+        box-shadow: 0 4px 6px rgba(255, 123, 37, 0.2);
+      }
+
+      .save-settings-btn:hover {
+        background: #e66a1a;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(255, 123, 37, 0.3);
+      }
+
+      .save-settings-btn:active {
+        transform: translateY(0);
+      }
+
+      .cancel-settings-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-light);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .cancel-settings-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .cancel-settings-btn:active {
+        transform: translateY(0);
+      }
+
+      /* Responsive design */
+      @media (max-width: 992px) {
+        .sidebar {
+          width: 240px;
+          padding: 15px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        .glass-container {
+          height: calc(100vh - 20px);
+        }
+
+        .sidebar {
+          position: fixed;
+          top: 0;
+          left: -100%;
+          width: 280px;
+          height: 100%;
+          z-index: 100;
+          padding-top: 80px;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .chat-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 20px; /* Original padding */
+          background: linear-gradient(
+            135deg,
+            var(--primary-dark),
+            rgba(26, 26, 46, 0.8)
+          );
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          position: relative;
+          z-index: 10;
+        }
+
+        .chat-controls {
+          display: flex;
+          gap: 8px; /* Reduced gap between buttons */
+          align-items: center;
+        }
+
+        /* Compact Login Form */
+        .login-form-container {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+          backdrop-filter: blur(5px);
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        .login-form {
+          background: rgba(26, 26, 46, 0.95);
+          padding: 20px;
+          border-radius: 10px;
+          width: 90%;
+          max-width: 350px; /* Slightly smaller */
+          box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          animation: fadeInUp 0.4s ease-out;
+        }
+
+        .login-form h2 {
+          margin-top: 0;
+          margin-bottom: 20px;
+          color: #ff7b25;
+          font-size: 1.3rem;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        /* Login Button Specific Styles */
+        .login-wrapper {
+          position: relative;
+          display: inline-block;
+          margin-left: 5px;
+        }
+
+        .login-dropdown {
+          display: none;
+          position: absolute;
+          right: 0;
+          background: rgba(26, 26, 46, 0.98);
+          min-width: 150px;
+          border-radius: 8px;
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+          z-index: 100;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          overflow: hidden;
+          animation: fadeIn 0.2s ease-out;
+        }
+
+        .login-wrapper:hover .login-dropdown {
+          display: block;
+        }
+
+        .login-dropdown a {
+          color: white;
+          padding: 8px 12px;
+          text-decoration: none;
+          display: block;
+          font-size: 0.85rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.2s;
+        }
+
+        .login-dropdown a:hover {
+          background: rgba(255, 123, 37, 0.3);
+        }
+
+        .login-dropdown a i {
+          margin-right: 8px;
+          width: 16px;
+          text-align: center;
+        }
+
+        /* Ensure header stays intact */
+        .chat-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 20px;
+          background: linear-gradient(
+            135deg,
+            var(--primary-dark),
+            rgba(26, 26, 46, 0.8)
+          );
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          position: relative;
+          z-index: 10;
+        }
+
+        .chat-controls {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        @media (max-width: 768px) {
+          .login-dropdown {
+            right: auto;
+            left: 0;
+          }
+
+          .chat-controls {
+            gap: 5px;
+          }
+        }
+
+        .login-form label {
+          display: block;
+          margin-bottom: 6px;
+          font-size: 0.9rem;
+        }
+
+        .login-form input {
+          padding: 10px 12px;
+          margin-bottom: 15px;
+          font-size: 0.9rem;
+        }
+
+        .login-form button {
+          padding: 10px;
+          font-size: 0.9rem;
+        }
+
+        .chat-header {
+          padding: 12px 15px;
+        }
+
+        .header-text h2 {
+          font-size: 1.2rem;
+        }
+
+        .header-text p {
+          font-size: 0.7rem;
+        }
+
+        .control-btn {
+          width: 36px;
+          height: 36px;
+          font-size: 14px;
+        }
+
+        .message {
+          max-width: 90%;
+          padding: 12px 16px;
+        }
+
+        #userInput {
+          padding: 12px 15px;
+          padding-right: 100px;
+          font-size: 15px;
+        }
+
+        .input-btn {
+          width: 36px;
+          height: 36px;
+        }
+
+        .file-upload-btn {
+          right: 50px;
+        }
+
+        .voice-btn {
+          right: 90px;
+        }
+
+        .stop-button {
+          bottom: 20px;
+          right: 20px;
+          width: 50px;
+          height: 50px;
+        }
+
+        .settings-footer {
+          flex-direction: column;
+        }
+
+        .settings-btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .settings-content {
+          width: 95%;
+          padding: 20px 15px;
+        }
+
+        .settings-tabs {
+          flex-wrap: wrap;
+        }
+
+        .settings-tab {
+          padding: 8px 12px;
+          font-size: 0.9rem;
+        }
+      }
+
+      /* Animation keyframes */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        70%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(239, 71, 111, 0);
+        }
+        0% {
+          box-shadow: 0 0 0 0 rgba(239, 71, 111, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(239, 71, 111, 0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Stop button -->
+    <button class="stop-button" id="stopButton" title="Stop Current Action">
+      <i class="fas fa-stop"></i>
+    </button>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+      <div class="settings-content">
+        <div class="settings-header">
+          <h3 class="settings-title">
+            <i class="fas fa-cog"></i> Chat Settings
+          </h3>
+          <button class="close-settings" onclick="closeSettings()">
+            &times;
+          </button>
+        </div>
+
+        <div class="settings-saved-notice" id="settingsSavedNotice">
+          <i class="fas fa-check-circle"></i> Settings saved successfully!
+        </div>
+
+        <div class="settings-tabs">
+          <button class="settings-tab active" onclick="openTab('general-tab')">
+            General
+          </button>
+          <button class="settings-tab" onclick="openTab('voice-tab')">
+            Voice
+          </button>
+          <button class="settings-tab" onclick="openTab('appearance-tab')">
+            Appearance
+          </button>
+          <button class="settings-tab" onclick="openTab('advanced-tab')">
+            Advanced
+          </button>
+        </div>
+
+        <!-- General Settings Tab -->
+        <div id="general-tab" class="tab-content active">
+          <div class="setting-item">
+            <label class="setting-label">Chat History</label>
+            <p class="setting-description">
+              Choose how long to keep your chat history stored locally.
+            </p>
+            <select class="setting-control" id="historyRetention">
+              <option value="1">1 Day</option>
+              <option value="7" selected>1 Week</option>
+              <option value="30">1 Month</option>
+              <option value="365">1 Year</option>
+              <option value="0">Forever</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Message Animation</label>
+            <p class="setting-description">
+              Enable or disable animations when messages appear.
+            </p>
+            <label class="toggle-switch">
+              <input type="checkbox" id="animationToggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Default Curriculum</label>
+            <p class="setting-description">
+              Select which curriculum to show by default when opening Chatty.
+            </p>
+            <select class="setting-control" id="defaultCurriculum">
+              <option value="none">None (Show selector)</option>
+              <option value="pearson">Pearson Edexcel</option>
+              <option value="ges">GES (West Africa)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Voice Settings Tab -->
+        <div id="voice-tab" class="tab-content">
+          <div class="setting-item">
+            <label class="setting-label">Text-to-Speech</label>
+            <p class="setting-description">
+              Enable or disable voice responses from Chatty.
+            </p>
+            <label class="toggle-switch">
+              <input type="checkbox" id="voiceToggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Voice Speed</label>
+            <p class="setting-description">Adjust how fast Chatty speaks.</p>
+            <input
+              type="range"
+              id="voiceSpeed"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value="1"
+              class="setting-control"
+            />
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 5px;
+              "
+            >
+              <span style="font-size: 0.8rem">Slower</span>
+              <span style="font-size: 0.8rem">Faster</span>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Voice Pitch</label>
+            <p class="setting-description">
+              Adjust the pitch of Chatty's voice.
+            </p>
+            <input
+              type="range"
+              id="voicePitch"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value="1"
+              class="setting-control"
+            />
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 5px;
+              "
+            >
+              <span style="font-size: 0.8rem">Lower</span>
+              <span style="font-size: 0.8rem">Higher</span>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Voice Selection</label>
+            <p class="setting-description">
+              Choose your preferred voice for Chatty.
+            </p>
+            <div class="voice-options" id="voiceOptions">
+              <!-- Voice options will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Appearance Settings Tab -->
+        <div id="appearance-tab" class="tab-content">
+          <div class="setting-item">
+            <label class="setting-label">Theme</label>
+            <p class="setting-description">
+              Choose between light and dark themes.
+            </p>
+            <select class="setting-control" id="themeSelect">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+              <option value="system">System Default</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Accent Color</label>
+            <p class="setting-description">
+              Select your preferred accent color.
+            </p>
+            <div style="display: flex; gap: 10px; margin-top: 10px">
+              <div
+                class="color-option"
+                data-color="orange"
+                style="
+                  background: #ff7b25;
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 50%;
+                  cursor: pointer;
+                  border: 2px solid white;
+                "
+              ></div>
+              <div
+                class="color-option"
+                data-color="blue"
+                style="
+                  background: #4e8cff;
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 50%;
+                  cursor: pointer;
+                "
+              ></div>
+              <div
+                class="color-option"
+                data-color="green"
+                style="
+                  background: #4caf50;
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 50%;
+                  cursor: pointer;
+                "
+              ></div>
+              <div
+                class="color-option"
+                data-color="purple"
+                style="
+                  background: #9c27b0;
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 50%;
+                  cursor: pointer;
+                "
+              ></div>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Message Density</label>
+            <p class="setting-description">
+              Adjust the spacing between messages.
+            </p>
+            <input
+              type="range"
+              id="messageDensity"
+              min="0.8"
+              max="1.5"
+              step="0.1"
+              value="1"
+              class="setting-control"
+            />
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 5px;
+              "
+            >
+              <span style="font-size: 0.8rem">Compact</span>
+              <span style="font-size: 0.8rem">Spacious</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Settings Tab -->
+        <div id="advanced-tab" class="tab-content">
+          <div class="setting-item">
+            <label class="setting-label">API Connection</label>
+            <p class="setting-description">
+              Status:
+              <span id="apiStatus" style="color: var(--accent-yellow)"
+                >Connected</span
+              >
+            </p>
+            <button
+              class="settings-btn"
+              style="
+                background: var(--accent-red);
+                color: white;
+                margin-top: 10px;
+              "
+              onclick="testApiConnection()"
+            >
+              Test Connection
+            </button>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Clear Cache</label>
+            <p class="setting-description">
+              Clear all locally stored data and reset to defaults.
+            </p>
+            <button
+              class="settings-btn"
+              style="
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--text-light);
+                margin-top: 10px;
+              "
+              onclick="clearCache()"
+            >
+              Clear All Data
+            </button>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Debug Mode</label>
+            <p class="setting-description">
+              Enable detailed logging for troubleshooting.
+            </p>
+            <label class="toggle-switch">
+              <input type="checkbox" id="debugToggle" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-footer">
+          <button class="cancel-settings-btn" onclick="closeSettings()">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button class="save-settings-btn" onclick="saveSettings()">
+            <i class="fas fa-save"></i> Save Settings
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Chat Container -->
+    <div class="glass-container">
+      <div class="chat-header">
+        <div class="school-brand">
+          <img src="images/logo.png" alt="CHIS Logo" class="school-logo" />
+          <div class="header-text">
+            <h2>Chatty CHIS</h2>
+            <p>Crystal Heights International School</p>
+          </div>
+        </div>
+        <div class="chat-controls">
+          <button class="control-btn" title="Menu" id="menuBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <button class="control-btn" title="Clear Chat" onclick="clearChat()">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          <button class="control-btn" title="Settings" onclick="openSettings()">
+            <i class="fas fa-cog"></i>
+          </button>
+          <!-- Login Button -->
+          <div class="login-container">
+            <button
+              class="control-btn"
+              title="Login"
+              id="loginBtn"
+              onclick="toggleLoginMenu(event)"
+            >
+              <i class="fas fa-sign-in-alt"></i>
+            </button>
+            <div class="login-menu" id="loginMenu">
+              <a href="#" onclick="showLoginForm('admin')"
+                ><i class="fas fa-user-shield"></i> Admin</a
+              >
+              <a href="#" onclick="showLoginForm('teacher')"
+                ><i class="fas fa-chalkboard-teacher"></i> Teacher</a
+              >
+              <a href="#" onclick="showLoginForm('parent')"
+                ><i class="fas fa-user-friends"></i> Parent</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-main">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">
+              <i class="fas fa-graduation-cap"></i> Curriculums
+            </h3>
+            <button
+              class="curriculum-btn"
+              onclick="toggleCurriculum('pearson')"
+            >
+              <span>
+                <i class="fas fa-graduation-cap"></i> Pearson Edexcel
+              </span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="subject-list" id="pearson-subjects">
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Mathematics')"
+              >
+                Mathematics
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson English Language')"
+              >
+                English Language
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson English Literature')"
+              >
+                English Literature
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Biology')"
+              >
+                Biology
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Chemistry')"
+              >
+                Chemistry
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Physics')"
+              >
+                Physics
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Further Mathematics')"
+              >
+                Further Mathematics
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Economics')"
+              >
+                Economics
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Business Studies')"
+              >
+                Business Studies
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Accounting')"
+              >
+                Accounting
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Geography')"
+              >
+                Geography
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson History')"
+              >
+                History
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson ICT')"
+              >
+                ICT
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Computer Science')"
+              >
+                Computer Science
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Phonics')"
+              >
+                Phonics
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('Pearson Robotics')"
+              >
+                Robotics
+              </div>
+            </div>
+
+            <button class="curriculum-btn" onclick="toggleCurriculum('ges')">
+              <span>
+                <i class="fas fa-globe-africa"></i> GES (West Africa)
+              </span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="subject-list" id="ges-subjects">
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES Mathematics')"
+              >
+                Mathematics
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES English Language')"
+              >
+                English Language
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES Integrated Science')"
+              >
+                Integrated Science
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES Social Studies')"
+              >
+                Social Studies
+              </div>
+              <div class="subject-item" onclick="askAboutSubject('GES ICT')">
+                ICT
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES Ghanaian Language')"
+              >
+                Ghanaian Language
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES Religious & Moral Education')"
+              >
+                Religious & Moral Education
+              </div>
+              <div class="subject-item" onclick="askAboutSubject('GES French')">
+                French
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES BDT (Pre-Tech Skills)')"
+              >
+                BDT (Pre-Tech)
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES Creative Arts')"
+              >
+                Creative Arts
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES Physical Education')"
+              >
+                Physical Education
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES History of Ghana')"
+              >
+                History of Ghana
+              </div>
+              <div
+                class="subject-item"
+                onclick="askAboutSubject('GES Robotics')"
+              >
+                Robotics
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">
+              <i class="fas fa-bolt"></i> Quick Access
+            </h3>
+            <button
+              class="quick-access-btn"
+              onclick="showQuickAccess('resources')"
+            >
+              <i class="fas fa-book-open"></i> Learning Resources
+            </button>
+            <button class="quick-access-btn" onclick="showQuickAccess('tools')">
+              <i class="fas fa-tools"></i> Study Tools
+            </button>
+            <button
+              class="quick-access-btn"
+              onclick="showQuickAccess('history')"
+            >
+              <i class="fas fa-history"></i> Chat History
+            </button>
+            <button class="quick-access-btn" onclick="showQuickAccess('fees')">
+              <i class="fas fa-money-bill-wave"></i> Fee Structure
+            </button>
+            <button
+              class="quick-access-btn"
+              onclick="showQuickAccess('calendar')"
+            >
+              <i class="fas fa-calendar-alt"></i> School Calendar
+            </button>
+            <button
+              class="quick-access-btn"
+              onclick="showQuickAccess('timetable')"
+            >
+              <i class="fas fa-clock"></i> School Timetable
+            </button>
+            <button
+              class="quick-access-btn"
+              onclick="showQuickAccess('schoolinfo')"
+            >
+              <i class="fas fa-info-circle"></i> School Information
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat area -->
+        <div class="chat-area">
+          <div class="chat-body" id="chatBody">
+            <div class="welcome-message">
+              <h3><i class="fas fa-robot"></i> Welcome to Chatty CHIS!</h3>
+              <p>
+                Your AI learning assistant for Crystal Heights International
+                School. I can help with:
+              </p>
+              <ul>
+                <li>Explaining curriculum concepts</li>
+                <li>Answering school-related questions</li>
+                <li>Providing learning resources</li>
+                <li>Helping with homework and assignments</li>
+              </ul>
+              <p>
+                Select a curriculum from the sidebar to get started, or just ask
+                me anything!
+              </p>
+            </div>
+          </div>
+
+          <!-- Login Form -->
+
+          <div class="chat-input-container">
+            <div class="input-group">
+              <input
+                type="text"
+                id="userInput"
+                placeholder="Ask about your subjects, homework, or school activities..."
+              />
+              <label
+                for="fileUpload"
+                class="input-btn file-upload-btn"
+                title="Upload File"
+                id="fileUploadBtn"
+              >
+                <i class="fas fa-file-upload"></i>
+              </label>
+              <input
+                type="file"
+                id="fileUpload"
+                accept=".pdf,.docx,.txt"
+                style="display: none"
+              />
+              <button
+                class="input-btn voice-btn"
+                id="voiceBtn"
+                title="Voice Input"
+                onclick="toggleVoiceInput()"
+              >
+                <i class="fas fa-microphone"></i>
+              </button>
+              <button
+                class="input-btn"
+                title="Send Message"
+                onclick="sendMessage()"
+              >
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // DOM Elements
+      const userInput = document.getElementById("userInput");
+      const chatBody = document.getElementById("chatBody");
+      const voiceBtn = document.getElementById("voiceBtn");
+      const settingsModal = document.getElementById("settingsModal");
+      const stopButton = document.getElementById("stopButton");
+      const fileUploadBtn = document.getElementById("fileUploadBtn");
+      const fileUpload = document.getElementById("fileUpload");
+      const menuBtn = document.getElementById("menuBtn");
+      const sidebar = document.getElementById("sidebar");
+      const voiceToggle = document.getElementById("voiceToggle");
+      const voiceSpeed = document.getElementById("voiceSpeed");
+      const voicePitch = document.getElementById("voicePitch");
+      const voiceSelect = document.createElement("select");
+      voiceSelect.id = "voiceSelect";
+      voiceSelect.className = "setting-control";
+      const animationToggle = document.getElementById("animationToggle");
+      const defaultCurriculum = document.getElementById("defaultCurriculum");
+      const themeSelect = document.getElementById("themeSelect");
+
+      // State variables
+      let recognition;
+      let synthesis = window.speechSynthesis;
+      let voices = [];
+      let isListening = false;
+      let currentUtterance = null;
+      let currentRequest = null;
+      let currentDocument = null;
+      let currentDocumentName = null;
+      let activeCurriculum = null;
+      let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+      let lastReadPosition = 0;
+
+      // Initialize the app
+      document.addEventListener("DOMContentLoaded", () => {
+        // Load settings
+        loadSettings();
+
+        // Initialize speech synthesis
+        loadVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+          speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        // Initialize speech recognition if available
+        if (
+          "webkitSpeechRecognition" in window ||
+          "SpeechRecognition" in window
+        ) {
+          initSpeechRecognition();
+        } else {
+          voiceBtn.style.display = "none";
+          console.warn("Speech recognition not supported in this browser");
+        }
+
+        // Set up event listeners
+        userInput.addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault(); // Prevent default form submission behavior
+            sendMessage();
+          }
+        });
+
+        fileUpload.addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (file) handleFileUpload(file);
+        });
+
+        menuBtn.addEventListener("click", function () {
+          sidebar.classList.toggle("active");
+        });
+
+        stopButton.addEventListener("click", stopCurrentAction);
+
+        // Load chat history if available
+        if (chatHistory.length > 0) {
+          loadChatHistory();
+        }
+
+        // Show welcome message after a short delay
+        setTimeout(() => {
+          if (settings.voiceEnabled) {
+            speakText(
+              "Hello! I'm Chatty CHIS,  Crystal Heights International School's intelligent AI assistant, designed by Jason Oppong-Otoo and supervised by Daniel Wayne. I provide 24/7 academic support across all curricula (Pearson Edexcel and GES), offering detailed explanations for every subject from Pre-School to A-Level. I serve as a comprehensive school resource—accessing teacher directories, timetables, fee structures, and school history—while featuring voice interaction, document analysis, and personalized settings. I enhance learning through instant access to educational content, administrative tools for staff and parents, and adaptive responses tailored to student needs, revolutionizing how the CHIS community engages with information. How can I help you today?",
+              false
+            );
+          }
+        }, 1000);
+      });
+
+      // Load chat history
+      function loadChatHistory() {
+        chatBody.innerHTML = "";
+
+        // Add welcome message
+        const welcomeDiv = document.createElement("div");
+        welcomeDiv.className =
+          "welcome-message animate__animated animate__fadeIn";
+        welcomeDiv.innerHTML = `
+          <h3><i class="fas fa-robot"></i> Welcome back to Chatty CHIS!</h3>
+          <p>Here's your recent conversation history:</p>
+        `;
+        chatBody.appendChild(welcomeDiv);
+
+        // Add history items
+        chatHistory.forEach((item) => {
+          if (item.role === "user") {
+            const userMessageDiv = document.createElement("div");
+            userMessageDiv.className =
+              "message user-message animate__animated animate__fadeInRight";
+            userMessageDiv.innerHTML = `
+              <p>${item.content}</p>
+              <div class="message-time">${item.time}</div>
+            `;
+            chatBody.appendChild(userMessageDiv);
+          } else {
+            const botMessageDiv = document.createElement("div");
+            botMessageDiv.className =
+              "message bot-message animate__animated animate__fadeInLeft";
+            botMessageDiv.innerHTML = `
+              <div class="formatted-response">${marked.parse(
+                item.content
+              )}</div>
+              <div class="message-time">${item.time}</div>
+              ${item.controls || ""}
+            `;
+            chatBody.appendChild(botMessageDiv);
+          }
+        });
+
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }
+
+      // Initialize speech recognition
+      function initSpeechRecognition() {
+        recognition = new (window.SpeechRecognition ||
+          window.webkitSpeechRecognition)();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+
+        recognition.onstart = function () {
+          isListening = true;
+          voiceBtn.classList.add("listening");
+          userInput.placeholder = "Listening...";
+        };
+
+        recognition.onend = function () {
+          isListening = false;
+          voiceBtn.classList.remove("listening");
+          userInput.placeholder =
+            "Ask about your subjects, homework, or school activities...";
+        };
+
+        recognition.onresult = function (event) {
+          const transcript = event.results[0][0].transcript;
+          userInput.value = transcript;
+
+          if (transcript.trim()) {
+            setTimeout(() => {
+              sendMessage();
+            }, 500);
+          }
+        };
+
+        recognition.onerror = function (event) {
+          console.error("Speech recognition error", event.error);
+          isListening = false;
+          voiceBtn.classList.remove("listening");
+          userInput.placeholder =
+            "Ask about your subjects, homework, or school activities...";
+
+          showErrorMessage(
+            `Voice input error: ${event.error}. Please try again.`
+          );
+        };
+      }
+
+      // Toggle voice input
+      function toggleVoiceInput() {
+        if (!recognition) {
+          initSpeechRecognition();
+        }
+
+        if (isListening) {
+          recognition.stop();
+        } else {
+          try {
+            recognition.start();
+          } catch (error) {
+            console.error("Speech recognition start error:", error);
+          }
+        }
+      }
+
+      // Toggle curriculum expansion
+      function toggleCurriculum(curriculum) {
+        const btn = event.currentTarget;
+        const subjectList = document.getElementById(`${curriculum}-subjects`);
+
+        // Toggle active class
+        btn.classList.toggle("active");
+        subjectList.classList.toggle("active");
+
+        // Rotate chevron icon
+        const chevron = btn.querySelector(".fa-chevron-down");
+        if (btn.classList.contains("active")) {
+          chevron.classList.remove("fa-chevron-down");
+          chevron.classList.add("fa-chevron-up");
+        } else {
+          chevron.classList.remove("fa-chevron-up");
+          chevron.classList.add("fa-chevron-down");
+        }
+
+        // Set active curriculum
+        activeCurriculum = btn.classList.contains("active") ? curriculum : null;
+      }
+
+      // Ask about a specific subject
+      function askAboutSubject(subject) {
+        userInput.value = `Explain key concepts in ${subject}`;
+        userInput.focus();
+        setTimeout(() => {
+          sendMessage();
+        }, 300);
+      }
+
+      // Show quick access content
+      function showQuickAccess(type) {
+        let message = "";
+
+        switch (type) {
+          case "resources":
+            message = `# Learning Resources\n\nHere are some helpful resources:\n\n1. **Online Library**: [CHIS Digital Library](#)\n2. **Video Lessons**: [CHIS YouTube Channel](#)\n3. **Practice Tests**: [Pearson Practice Portal](#)\n4. **GES Syllabus**: [Download PDF](#)\n\nLet me know if you need help with any specific resource.`;
+            break;
+          case "tools":
+            message = `# Study Tools\n\nAvailable tools:\n\n1. **Homework Planner**\n2. **Flashcard Creator**\n3. **Equation Solver**\n4. **Essay Outline Generator**\n\nWhich tool would you like to use?`;
+            break;
+          case "history":
+            if (chatHistory.length === 0) {
+              message = `# Chat History\n\nNo recent conversations found. Start chatting to see your history here.`;
+            } else {
+              message = `# Chat History\n\nYour recent conversations:\n\n`;
+              // Show last 5 unique conversations
+              const uniqueConversations = [
+                ...new Set(
+                  chatHistory
+                    .filter((item) => item.role === "user")
+                    .map((item) => item.content)
+                ),
+              ];
+              uniqueConversations.slice(-5).forEach((conv, index) => {
+                message += `${index + 1}. "${conv}"\n`;
+              });
+            }
+            break;
+          case "fees":
+            // Clear chat and show fees display
+            setTimeout(() => {
+              clearChat();
+              initializeFeesDisplay();
+            }, 100);
+            break;
+          case "calendar":
+            message = `# School Calendar\n\n**Upcoming Events**\n\n1. **Mid-Term Break**: Oct 15-17\n2. **Sports Day**: Nov 5\n3. **Parent-Teacher Conference**: Nov 20\n4. **End of Term Exams**: Dec 5-15\n\nWould you like to add any of these to your personal calendar?`;
+            break;
+
+            // Login functionality
+            function showLoginForm(userType) {
+              const container = document.getElementById("loginFormContainer");
+              const title = document.getElementById("loginFormTitle");
+
+              switch (userType) {
+                case "admin":
+                  title.innerHTML =
+                    '<i class="fas fa-user-shield"></i> Admin Login';
+                  break;
+                case "teacher":
+                  title.innerHTML =
+                    '<i class="fas fa-chalkboard-teacher"></i> Teacher Login';
+                  break;
+                case "parent":
+                  title.innerHTML =
+                    '<i class="fas fa-user-friends"></i> Parent Login';
+                  break;
+              }
+
+              container.style.display = "flex";
+              document.getElementById("loginForm").dataset.userType = userType;
+            }
+
+            function closeLoginForm() {
+              document.getElementById("loginFormContainer").style.display =
+                "none";
+            }
+
+            function showForgotPassword() {
+              alert("Password recovery feature will be implemented soon.");
+            }
+
+            document
+              .getElementById("loginForm")
+              .addEventListener("submit", function (e) {
+                e.preventDefault();
+                const userType = this.dataset.userType;
+                alert(
+                  `Successfully logged in as ${userType}! Redirecting to ${userType} portal...`
+                );
+                closeLoginForm();
+                this.reset();
+              });
+
+            document
+              .getElementById("loginFormContainer")
+              .addEventListener("click", function (e) {
+                if (e.target === this) {
+                  closeLoginForm();
+                }
+              });
+
+          // In the showQuickAccess function
+          case "timetable":
+            // Clear chat and show timetable display
+            setTimeout(() => {
+              clearChat();
+              initializeTimetableDisplay();
+            }, 100);
+            break;
+
+          case "schoolinfo":
+            // Clear chat and show school info display
+            setTimeout(() => {
+              clearChat();
+              initializeSchoolInfoDisplay();
+            }, 100);
+            break;
+        }
+
+        const botMessageDiv = document.createElement("div");
+        botMessageDiv.className =
+          "message bot-message animate__animated animate__fadeInLeft";
+        botMessageDiv.innerHTML = `
+                <div class="formatted-response">${marked.parse(message)}</div>
+                <div class="message-time">${getCurrentTime()}</div>
+                <div class="message-controls">
+                  <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                    message
+                  )}')">
+                    <i class="fas fa-volume-up"></i> Read Again
+                  </button>
+                  <button class="message-control-btn" onclick="stopCurrentAction()">
+                    <i class="fas fa-stop"></i> Stop
+                  </button>
+                  <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                    message
+                  )}')">
+                    <i class="fas fa-play"></i> Continue
+                  </button>
+                </div>
+            `;
+
+        chatBody.appendChild(botMessageDiv);
+        speakText(cleanSpeechText(message));
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        // Add to chat history with controls
+        chatHistory.push({
+          role: "bot",
+          content: message,
+          time: getCurrentTime(),
+          controls: `
+            <div class="message-controls">
+              <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                message
+              )}')">
+                <i class="fas fa-volume-up"></i> Read Again
+              </button>
+              <button class="message-control-btn" onclick="stopCurrentAction()">
+                <i class="fas fa-stop"></i> Stop
+              </button>
+              <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                message
+              )}')">
+                <i class="fas fa-play"></i> Continue
+              </button>
+            </div>
+          `,
+        });
+        saveChatHistory();
+      }
+
+      // Clean text for speech synthesis
+      function cleanSpeechText(text) {
+        // Remove markdown formatting, links, and special characters
+        return text
+          .replace(/<[^>]*>?/gm, "") // Remove HTML tags
+          .replace(/[#*_\-\[\]\(\)]/g, "") // Remove markdown formatting
+          .replace(/\n/g, " ") // Replace newlines with spaces
+          .replace(/\s+/g, " ") // Collapse multiple spaces
+          .trim();
+      }
+
+      // Handle file upload
+      function handleFileUpload(file) {
+        const uploadMsg = document.createElement("div");
+        uploadMsg.className =
+          "message bot-message animate__animated animate__fadeInLeft";
+        uploadMsg.innerHTML = `
+                <p>Processing <strong>${file.name}</strong>...</p>
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+        chatBody.appendChild(uploadMsg);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        const reader = new FileReader();
+
+        if (file.type === "application/pdf") {
+          // PDF processing would go here
+          // For now we'll simulate success
+          setTimeout(() => {
+            currentDocument =
+              "Sample document content extracted from " + file.name;
+            currentDocumentName = file.name;
+            fileUploadBtn.classList.add("document-active");
+
+            const successMsg = document.createElement("div");
+            successMsg.className =
+              "message bot-message animate__animated animate__fadeInLeft";
+            successMsg.innerHTML = `
+                        <p>Successfully processed <strong>${
+                          file.name
+                        }</strong>. You can now ask questions about this document.</p>
+                        <div class="message-time">${getCurrentTime()}</div>
+                    `;
+            chatBody.appendChild(successMsg);
+            chatBody.scrollTop = chatBody.scrollHeight;
+          }, 1500);
+        } else if (
+          file.type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ) {
+          // DOCX processing would go here
+          // For now we'll simulate success
+          setTimeout(() => {
+            currentDocument =
+              "Sample document content extracted from " + file.name;
+            currentDocumentName = file.name;
+            fileUploadBtn.classList.add("document-active");
+
+            const successMsg = document.createElement("div");
+            successMsg.className =
+              "message bot-message animate__animated animate__fadeInLeft";
+            successMsg.innerHTML = `
+                        <p>Successfully processed <strong>${
+                          file.name
+                        }</strong>. You can now ask questions about this document.</p>
+                        <div class="message-time">${getCurrentTime()}</div>
+                    `;
+            chatBody.appendChild(successMsg);
+            chatBody.scrollTop = chatBody.scrollHeight;
+          }, 1500);
+        } else if (file.type === "text/plain") {
+          // TXT processing
+          reader.onload = function (e) {
+            currentDocument = e.target.result;
+            currentDocumentName = file.name;
+            fileUploadBtn.classList.add("document-active");
+
+            const successMsg = document.createElement("div");
+            successMsg.className =
+              "message bot-message animate__animated animate__fadeInLeft";
+            successMsg.innerHTML = `
+                        <p>Successfully processed <strong>${
+                          file.name
+                        }</strong>. You can now ask questions about this document.</p>
+                        <div class="message-time">${getCurrentTime()}</div>
+                    `;
+            chatBody.appendChild(successMsg);
+            chatBody.scrollTop = chatBody.scrollHeight;
+          };
+          reader.readAsText(file);
+        } else {
+          showErrorMessage(
+            "Unsupported file type. Please upload PDF, DOCX, or TXT files."
+          );
+        }
+      }
+
+      // In the handleTeacherQuery function, ensure the display is initialized
+      function handleTeacherQuery(query) {
+        const response = teachersQuery.handleQuery(query);
+
+        if (response.action === "initializeTeachersDisplay") {
+          // Clear chat and show teachers display
+          setTimeout(() => {
+            clearChat();
+            new TeachersDisplay(); // Make sure to create a new instance
+          }, 100);
+        }
+
+        return response;
+      }
+
+      // Login dropdown functionality
+      let activeDropdown = null;
+
+      function toggleLoginMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById("loginMenu");
+
+        // Close any other open dropdowns
+        if (activeDropdown && activeDropdown !== menu) {
+          activeDropdown.classList.remove("show");
+        }
+
+        // Toggle current menu
+        menu.classList.toggle("show");
+        activeDropdown = menu.classList.contains("show") ? menu : null;
+
+        // Add/remove click listener
+        if (menu.classList.contains("show")) {
+          setTimeout(() => {
+            document.addEventListener("click", closeAllDropdowns);
+          }, 10);
+        } else {
+          document.removeEventListener("click", closeAllDropdowns);
+        }
+      }
+
+      function closeAllDropdowns() {
+        if (activeDropdown) {
+          activeDropdown.classList.remove("show");
+          activeDropdown = null;
+          document.removeEventListener("click", closeAllDropdowns);
+        }
+      }
+
+      function showLoginForm(userType) {
+        closeAllDropdowns();
+        const container = document.getElementById("loginFormContainer");
+        const title = document.getElementById("loginFormTitle");
+
+        switch (userType) {
+          case "admin":
+            title.innerHTML = '<i class="fas fa-user-shield"></i> Admin Login';
+            break;
+          case "teacher":
+            title.innerHTML =
+              '<i class="fas fa-chalkboard-teacher"></i> Teacher Login';
+            break;
+          case "parent":
+            title.innerHTML =
+              '<i class="fas fa-user-friends"></i> Parent Login';
+            break;
+        }
+
+        container.style.display = "flex";
+        document.getElementById("loginForm").dataset.userType = userType;
+      }
+
+      // Close dropdown when clicking on option
+      document.querySelectorAll(".login-menu a").forEach((item) => {
+        item.addEventListener("click", function (e) {
+          e.stopPropagation();
+        });
+      });
+
+      // Search within uploaded document
+      function searchDocument(query) {
+        if (!currentDocument) return null;
+
+        // Simple search implementation
+        const lines = currentDocument.split("\n");
+        const relevantLines = lines.filter((line) =>
+          line.toLowerCase().includes(query.toLowerCase())
+        );
+
+        if (relevantLines.length > 0) {
+          return {
+            response:
+              "Here's what I found in the document:\n\n" +
+              relevantLines.slice(0, 5).join("\n") +
+              (relevantLines.length > 5 ? "\n\n...and more." : ""),
+            source: "document",
+          };
+        }
+
+        return null;
+      }
+
+      // Send message function
+      async function sendMessage() {
+        const input = userInput.value.trim();
+
+        if (!input) return;
+
+        stopButton.classList.add("visible");
+
+        // Inside sendMessage function, before the API call
+        if (
+          input.toLowerCase().includes("teacher") ||
+          input.toLowerCase().includes("teachers") ||
+          input.toLowerCase().includes("teaches") ||
+          input.match(/(grade|class|jhs|shs|o level|a level|ils) teacher/i)
+        ) {
+          const response = handleTeacherQuery(input);
+
+          const botMessageDiv = document.createElement("div");
+          botMessageDiv.className =
+            "message bot-message animate__animated animate__fadeInLeft";
+          botMessageDiv.innerHTML = `
+    <div class="formatted-response">${marked.parse(response.text)}${
+            response.html
+          }</div>
+    <div class="message-time">${getCurrentTime()}</div>
+  `;
+
+          chatBody.appendChild(botMessageDiv);
+          chatBody.scrollTop = chatBody.scrollHeight;
+          return;
+        }
+
+        // Inside sendMessage function, before the API call
+        if (
+          input.toLowerCase().includes("school") ||
+          input.toLowerCase().includes("chis") ||
+          input.toLowerCase().includes("anthem") ||
+          input.toLowerCase().includes("founder") ||
+          input.toLowerCase().includes("history") ||
+          input.toLowerCase().includes("principal") ||
+          input.toLowerCase().includes("headmaster") ||
+          input.toLowerCase().includes("staff") ||
+          input.toLowerCase().includes("success story") ||
+          input.toLowerCase().includes("special need")
+        ) {
+          const response = schoolInfoQuery.handleQuery(input);
+
+          const botMessageDiv = document.createElement("div");
+          botMessageDiv.className =
+            "message bot-message animate__animated animate__fadeInLeft";
+          botMessageDiv.innerHTML = `
+    <div class="formatted-response">${marked.parse(response.text)}${
+            response.html
+          }</div>
+    <div class="message-time">${getCurrentTime()}</div>
+  `;
+
+          chatBody.appendChild(botMessageDiv);
+          chatBody.scrollTop = chatBody.scrollHeight;
+          return;
+        }
+
+        // Create user message
+        const userMessageDiv = document.createElement("div");
+        userMessageDiv.className =
+          "message user-message animate__animated animate__fadeInRight";
+        userMessageDiv.innerHTML = `
+                <p>${input}</p>
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+        chatBody.appendChild(userMessageDiv);
+
+        // Add to chat history
+        chatHistory.push({
+          role: "user",
+          content: input,
+          time: getCurrentTime(),
+        });
+
+        userInput.value = "";
+
+        // Check for self-description queries
+        const selfDescriptionResponses = [
+          "I'm Chatty, your AI learning assistant created by Jason Oppong-Otoo,supervised by Daniel wayne , to help students with their studies and school-related questions.",
+          "My name is Chatty, a specialized AI designed by Jason Oppong-Otoo,supervised by Daniel wayne  , specifically for Crystal Heights International School students and staff.",
+          "I'm an artificial intelligence called Chatty, developed by Jason Oppong-Otoo,supervised by Daniel wayne  , to assist with learning and school administration at Crystal Heights International School.",
+          "Hello! I'm Chatty, your digital learning companion. I was created by Jason Oppong-Otoo,supervised by Daniel wayne  , to help students navigate both Pearson and GES curriculums at CHIS.",
+        ];
+
+        const selfDescriptionPatterns = [
+          /who are you/i,
+          /what is your name/i,
+          /what are you/i,
+          /introduce yourself/i,
+          /tell me about yourself/i,
+        ];
+
+        for (const pattern of selfDescriptionPatterns) {
+          if (pattern.test(input)) {
+            const randomResponse =
+              selfDescriptionResponses[
+                Math.floor(Math.random() * selfDescriptionResponses.length)
+              ];
+
+            const botMessageDiv = document.createElement("div");
+            botMessageDiv.className =
+              "message bot-message animate__animated animate__fadeInLeft";
+            botMessageDiv.innerHTML = `
+                        <p>${randomResponse}</p>
+                        <div class="message-time">${getCurrentTime()}</div>
+                        <div class="message-controls">
+                          <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                            randomResponse
+                          )}')">
+                            <i class="fas fa-volume-up"></i> Read Again
+                          </button>
+                          <button class="message-control-btn" onclick="stopCurrentAction()">
+                            <i class="fas fa-stop"></i> Stop
+                          </button>
+                          <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                            randomResponse
+                          )}')">
+                            <i class="fas fa-play"></i> Continue
+                          </button>
+                        </div>
+                    `;
+            chatBody.appendChild(botMessageDiv);
+
+            // Add to chat history with controls
+            chatHistory.push({
+              role: "bot",
+              content: randomResponse,
+              time: getCurrentTime(),
+              controls: `
+                <div class="message-controls">
+                  <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                    randomResponse
+                  )}')">
+                    <i class="fas fa-volume-up"></i> Read Again
+                  </button>
+                  <button class="message-control-btn" onclick="stopCurrentAction()">
+                    <i class="fas fa-stop"></i> Stop
+                  </button>
+                  <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                    randomResponse
+                  )}')">
+                    <i class="fas fa-play"></i> Continue
+                  </button>
+                </div>
+              `,
+            });
+
+            speakText(cleanSpeechText(randomResponse));
+            chatBody.scrollTop = chatBody.scrollHeight;
+            stopButton.classList.remove("visible");
+            saveChatHistory();
+            return;
+          }
+        }
+
+        // Check greetings
+        const greetingPatterns = [
+          /hello/i,
+          /hi/i,
+          /hey/i,
+          /good morning/i,
+          /good afternoon/i,
+          /good evening/i,
+        ];
+
+        const greetingResponses = [
+          "Hello there! How can I assist you with your studies today?",
+          "Hi! Ready to learn something new? What can I help you with?",
+          "Hey! What would you like to know about today?",
+          "Greetings! How can I support your learning today?",
+        ];
+
+        for (const pattern of greetingPatterns) {
+          if (pattern.test(input)) {
+            const randomResponse =
+              greetingResponses[
+                Math.floor(Math.random() * greetingResponses.length)
+              ];
+
+            const botMessageDiv = document.createElement("div");
+            botMessageDiv.className =
+              "message bot-message animate__animated animate__fadeInLeft";
+            botMessageDiv.innerHTML = `
+                        <p>${randomResponse}</p>
+                        <div class="message-time">${getCurrentTime()}</div>
+                        <div class="message-controls">
+                          <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                            randomResponse
+                          )}')">
+                            <i class="fas fa-volume-up"></i> Read Again
+                          </button>
+                          <button class="message-control-btn" onclick="stopCurrentAction()">
+                            <i class="fas fa-stop"></i> Stop
+                          </button>
+                          <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                            randomResponse
+                          )}')">
+                            <i class="fas fa-play"></i> Continue
+                          </button>
+                        </div>
+                    `;
+            chatBody.appendChild(botMessageDiv);
+
+            // Add to chat history with controls
+            chatHistory.push({
+              role: "bot",
+              content: randomResponse,
+              time: getCurrentTime(),
+              controls: `
+                <div class="message-controls">
+                  <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                    randomResponse
+                  )}')">
+                    <i class="fas fa-volume-up"></i> Read Again
+                  </button>
+                  <button class="message-control-btn" onclick="stopCurrentAction()">
+                    <i class="fas fa-stop"></i> Stop
+                  </button>
+                  <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                    randomResponse
+                  )}')">
+                    <i class="fas fa-play"></i> Continue
+                  </button>
+                </div>
+              `,
+            });
+
+            speakText(cleanSpeechText(randomResponse));
+            chatBody.scrollTop = chatBody.scrollHeight;
+            stopButton.classList.remove("visible");
+            saveChatHistory();
+            return;
+          }
+        }
+
+        // First check current document if one is loaded
+        if (currentDocument) {
+          const docResponse = searchDocument(input);
+
+          if (docResponse) {
+            const botMessageDiv = document.createElement("div");
+            botMessageDiv.className =
+              "message bot-message animate__animated animate__fadeInLeft";
+            botMessageDiv.innerHTML = `
+                        <div class="formatted-response">
+                            ${marked.parse(docResponse.response)}
+                            <div class="document-reference">
+                                <i class="fas fa-file-alt"></i> From: ${currentDocumentName}
+                            </div>
+                        </div>
+                        <div class="message-time">${getCurrentTime()}</div>
+                        <div class="message-controls">
+                          <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                            docResponse.response
+                          )}')">
+                            <i class="fas fa-volume-up"></i> Read Again
+                          </button>
+                          <button class="message-control-btn" onclick="stopCurrentAction()">
+                            <i class="fas fa-stop"></i> Stop
+                          </button>
+                          <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                            docResponse.response
+                          )}')">
+                            <i class="fas fa-play"></i> Continue
+                          </button>
+                        </div>
+                    `;
+            chatBody.appendChild(botMessageDiv);
+
+            // Add to chat history with controls
+            chatHistory.push({
+              role: "bot",
+              content: docResponse.response,
+              time: getCurrentTime(),
+              controls: `
+                <div class="message-controls">
+                  <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                    docResponse.response
+                  )}')">
+                    <i class="fas fa-volume-up"></i> Read Again
+                  </button>
+                  <button class="message-control-btn" onclick="stopCurrentAction()">
+                    <i class="fas fa-stop"></i> Stop
+                  </button>
+                  <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                    docResponse.response
+                  )}')">
+                    <i class="fas fa-play"></i> Continue
+                  </button>
+                </div>
+              `,
+            });
+
+            speakText(cleanSpeechText(docResponse.response));
+            chatBody.scrollTop = chatBody.scrollHeight;
+            stopButton.classList.remove("visible");
+            saveChatHistory();
+            return;
+          }
+        }
+
+        // Show typing indicator
+        const typingDiv = document.createElement("div");
+        typingDiv.className =
+          "typing-indicator animate__animated animate__fadeInLeft";
+        typingDiv.innerHTML = `
+                <span class="typing-text">Chatty CHIS is typing</span>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <button class="stop-thinking-btn" onclick="stopCurrentAction()">
+                    <i class="fas fa-stop"></i>
+                </button>
+            `;
+
+        chatBody.appendChild(typingDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        try {
+          const startTime = Date.now();
+          const controller = new AbortController();
+          const signal = controller.signal;
+          currentRequest = controller;
+
+          // Call the OpenRouter API
+          const response = await fetch(
+            "https://openrouter.ai/api/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                Authorization:
+                  "Bearer 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",
+                "HTTP-Referer": "https://www.crystalheights.edu.gh",
+                "X-Title": "CHIS Chatty",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "deepseek/deepseek-r1:free",
+                messages: [{ role: "user", content: input }],
+              }),
+              signal: signal,
+            }
+          );
+
+          currentRequest = null;
+          const data = await response.json();
+          const responseTime = Date.now() - startTime;
+
+          // Remove typing indicator
+          chatBody.removeChild(typingDiv);
+
+          // Create bot message
+          const botMessageDiv = document.createElement("div");
+          botMessageDiv.className =
+            "message bot-message animate__animated animate__fadeInLeft";
+          const markdownText =
+            data.choices?.[0]?.message?.content ||
+            "I'm not sure about that. Could you rephrase your question?";
+          botMessageDiv.innerHTML = `
+                    <div class="formatted-response">${marked.parse(
+                      markdownText
+                    )}</div>
+                    <div class="message-source">
+                        Source: AI
+                        <i class="fas fa-robot ai-icon source-icon"></i>
+                    </div>
+                    <div class="message-time">${getCurrentTime()} • ${responseTime}ms</div>
+                    <div class="message-controls">
+                      <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                        markdownText
+                      )}')">
+                        <i class="fas fa-volume-up"></i> Read Again
+                      </button>
+                      <button class="message-control-btn" onclick="stopCurrentAction()">
+                        <i class="fas fa-stop"></i> Stop
+                      </button>
+                      <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                        markdownText
+                      )}')">
+                        <i class="fas fa-play"></i> Continue
+                      </button>
+                    </div>
+                `;
+          chatBody.appendChild(botMessageDiv);
+
+          // Add to chat history with controls
+          chatHistory.push({
+            role: "bot",
+            content: markdownText,
+            time: getCurrentTime(),
+            controls: `
+              <div class="message-controls">
+                <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                  markdownText
+                )}')">
+                  <i class="fas fa-volume-up"></i> Read Again
+                </button>
+                <button class="message-control-btn" onclick="stopCurrentAction()">
+                  <i class="fas fa-stop"></i> Stop
+                </button>
+                <button class="message-control-btn" onclick="continueReading('${cleanSpeechText(
+                  markdownText
+                )}')">
+                  <i class="fas fa-play"></i> Continue
+                </button>
+              </div>
+            `,
+          });
+
+          speakText(cleanSpeechText(markdownText));
+          chatBody.scrollTop = chatBody.scrollHeight;
+          saveChatHistory();
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            chatBody.removeChild(typingDiv);
+
+            const errorDiv = document.createElement("div");
+            errorDiv.className =
+              "message bot-message animate__animated animate__fadeInLeft";
+            errorDiv.innerHTML = `
+                        <p>Sorry, I'm having trouble connecting right now. Please try again later.</p>
+                        <div class="message-time">${getCurrentTime()}</div>
+                        <div class="message-controls">
+                          <button class="message-control-btn" onclick="speakText('Sorry, I'm having trouble connecting right now. Please try again later.')">
+                            <i class="fas fa-volume-up"></i> Read Again
+                          </button>
+                          <button class="message-control-btn" onclick="stopCurrentAction()">
+                            <i class="fas fa-stop"></i> Stop
+                          </button>
+                        </div>
+                    `;
+            chatBody.appendChild(errorDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Add to chat history
+            chatHistory.push({
+              role: "bot",
+              content:
+                "Sorry, I'm having trouble connecting right now. Please try again later.",
+              time: getCurrentTime(),
+              controls: `
+                <div class="message-controls">
+                  <button class="message-control-btn" onclick="speakText('Sorry, I'm having trouble connecting right now. Please try again later.')">
+                    <i class="fas fa-volume-up"></i> Read Again
+                  </button>
+                  <button class="message-control-btn" onclick="stopCurrentAction()">
+                    <i class="fas fa-stop"></i> Stop
+                  </button>
+                </div>
+              `,
+            });
+            saveChatHistory();
+          }
+        } finally {
+          stopButton.classList.remove("visible");
+          currentRequest = null;
+        }
+      }
+
+      // Save chat history
+      function saveChatHistory() {
+        // Keep only the last 50 messages to prevent localStorage overflow
+        if (chatHistory.length > 50) {
+          chatHistory = chatHistory.slice(-50);
+        }
+        localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+      }
+
+      // Continue reading from last position
+      function continueReading(text) {
+        if (currentUtterance) {
+          synthesis.cancel();
+        }
+
+        const remainingText = text.slice(lastReadPosition);
+        speakText(remainingText);
+      }
+
+      // Stop current action
+      function stopCurrentAction() {
+        if (synthesis.speaking) {
+          lastReadPosition = synthesis.paused
+            ? lastReadPosition
+            : synthesis.speechLength;
+          synthesis.cancel();
+          currentUtterance = null;
+        }
+
+        if (isListening && recognition) {
+          recognition.stop();
+        }
+
+        if (currentRequest) {
+          currentRequest.abort();
+          currentRequest = null;
+        }
+
+        document
+          .querySelectorAll(".typing-indicator")
+          .forEach((el) => el.remove());
+        stopButton.classList.remove("visible");
+      }
+
+      // Speak text
+      function speakText(text, interrupt = true) {
+        if (!settings.voiceEnabled) return;
+
+        // Clean the text
+        let cleanText = cleanSpeechText(text);
+        if (!cleanText) return;
+
+        if (interrupt && currentUtterance) {
+          synthesis.cancel();
+        }
+
+        currentUtterance = new SpeechSynthesisUtterance(cleanText);
+
+        // Set voice if available
+        if (settings.voiceName) {
+          const selectedVoice = voices.find(
+            (v) => v.name === settings.voiceName
+          );
+          if (selectedVoice) {
+            currentUtterance.voice = selectedVoice;
+          } else if (voices.length > 0) {
+            // Fallback to first available voice if selected voice not found
+            currentUtterance.voice = voices[0];
+          }
+        } else if (voices.length > 0) {
+          // Use first available voice if no voice selected
+          currentUtterance.voice = voices[0];
+        }
+
+        currentUtterance.rate = settings.voiceSpeed;
+        currentUtterance.pitch = settings.voicePitch;
+
+        currentUtterance.onboundary = function (event) {
+          if (event.name === "word") {
+            lastReadPosition = event.charIndex;
+          }
+        };
+
+        currentUtterance.onend = function () {
+          currentUtterance = null;
+          lastReadPosition = 0;
+        };
+
+        currentUtterance.onerror = function (event) {
+          console.error("Speech synthesis error:", event);
+          currentUtterance = null;
+          lastReadPosition = 0;
+        };
+
+        synthesis.speak(currentUtterance);
+      }
+
+      // Load voices with settings persistence
+      function loadVoices() {
+        voices = synthesis.getVoices();
+        const voiceOptions = document.getElementById("voiceOptions");
+        voiceOptions.innerHTML = "";
+
+        const englishVoices = voices.filter((voice) =>
+          voice.lang.includes("en")
+        );
+
+        englishVoices.forEach((voice) => {
+          const voiceOption = document.createElement("div");
+          voiceOption.className = "voice-option";
+          if (voice.name === settings.voiceName) {
+            voiceOption.classList.add("selected");
+          }
+
+          voiceOption.innerHTML = `
+            <div class="voice-name">${voice.name}</div>
+            <div class="voice-details">${voice.lang} • ${voice.voiceURI}</div>
+          `;
+
+          voiceOption.addEventListener("click", () => {
+            document.querySelectorAll(".voice-option").forEach((opt) => {
+              opt.classList.remove("selected");
+            });
+            voiceOption.classList.add("selected");
+            settings.voiceName = voice.name;
+          });
+
+          voiceOptions.appendChild(voiceOption);
+        });
+
+        // If no voice selected and voices are available, select the first one
+        if (!settings.voiceName && englishVoices.length > 0) {
+          settings.voiceName = englishVoices[0].name;
+          if (voiceOptions.children[0]) {
+            voiceOptions.children[0].classList.add("selected");
+          }
+        }
+      }
+
+      // Show error message
+      function showErrorMessage(message) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className =
+          "message bot-message animate__animated animate__fadeInLeft";
+        errorDiv.innerHTML = `
+                <p>${message}</p>
+                <div class="message-time">${getCurrentTime()}</div>
+                <div class="message-controls">
+                  <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                    message
+                  )}')">
+                    <i class="fas fa-volume-up"></i> Read Again
+                  </button>
+                  <button class="message-control-btn" onclick="stopCurrentAction()">
+                    <i class="fas fa-stop"></i> Stop
+                  </button>
+                </div>
+            `;
+        chatBody.appendChild(errorDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        // Add to chat history
+        chatHistory.push({
+          role: "bot",
+          content: message,
+          time: getCurrentTime(),
+          controls: `
+            <div class="message-controls">
+              <button class="message-control-btn" onclick="speakText('${cleanSpeechText(
+                message
+              )}')">
+                <i class="fas fa-volume-up"></i> Read Again
+              </button>
+              <button class="message-control-btn" onclick="stopCurrentAction()">
+                <i class="fas fa-stop"></i> Stop
+              </button>
+            </div>
+          `,
+        });
+        saveChatHistory();
+      }
+
+      // Get current time
+      function getCurrentTime() {
+        const now = new Date();
+        return now.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      // Clear chat
+      function clearChat() {
+        stopCurrentAction();
+
+        chatBody.innerHTML = `
+                <div class="welcome-message animate__animated animate__fadeIn">
+                    <h3><i class="fas fa-robot"></i> Welcome back to Chatty CHIS!</h3>
+                    <p>Your chat history has been cleared. How can I help you today?</p>
+                </div>
+            `;
+
+        // Clear chat history
+        chatHistory = [];
+        saveChatHistory();
+
+        // Clear any loaded document
+        currentDocument = null;
+        currentDocumentName = null;
+        fileUploadBtn.classList.remove("document-active");
+      }
+
+      // Settings functions
+      function openSettings() {
+        settingsModal.style.display = "flex";
+      }
+
+      function closeSettings() {
+        settingsModal.style.display = "none";
+      }
+
+      function openTab(tabId) {
+        // Hide all tab contents
+        document.querySelectorAll(".tab-content").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+
+        // Deactivate all tabs
+        document.querySelectorAll(".settings-tab").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+
+        // Show selected tab content
+        document.getElementById(tabId).classList.add("active");
+
+        // Activate selected tab
+        event.currentTarget.classList.add("active");
+      }
+
+      // Enhanced settings management
+      const settings = {
+        voiceEnabled: true,
+        voiceSpeed: 1,
+        voicePitch: 1,
+        animationEnabled: true,
+        defaultCurriculum: "none",
+        theme: "dark",
+        voiceName: "",
+        messageDensity: 1,
+        accentColor: "orange",
+      };
+
+      // Initialize settings from localStorage
+      function loadSettings() {
+        const savedSettings = localStorage.getItem("chattySettings");
+        if (savedSettings) {
+          Object.assign(settings, JSON.parse(savedSettings));
+        }
+
+        // Apply settings to UI controls
+        voiceToggle.checked = settings.voiceEnabled;
+        voiceSpeed.value = settings.voiceSpeed;
+        voicePitch.value = settings.voicePitch;
+        animationToggle.checked = settings.animationEnabled;
+        defaultCurriculum.value = settings.defaultCurriculum;
+        themeSelect.value = settings.theme;
+        messageDensity.value = settings.messageDensity;
+
+        // Apply theme immediately
+        applyTheme(settings.theme);
+
+        // Apply message density
+        document.documentElement.style.setProperty(
+          "--message-spacing",
+          `${settings.messageDensity}em`
+        );
+
+        // Load voices after a short delay to ensure they're available
+        setTimeout(loadVoices, 500);
+      }
+
+      // Save settings to localStorage
+      function saveSettings() {
+        // Update settings object
+        settings.voiceEnabled = voiceToggle.checked;
+        settings.voiceSpeed = parseFloat(voiceSpeed.value);
+        settings.voicePitch = parseFloat(voicePitch.value);
+        settings.animationEnabled = animationToggle.checked;
+        settings.defaultCurriculum = defaultCurriculum.value;
+        settings.theme = themeSelect.value;
+        settings.messageDensity = parseFloat(messageDensity.value);
+
+        // Save to localStorage
+        localStorage.setItem("chattySettings", JSON.stringify(settings));
+
+        // Apply changes immediately
+        applyTheme(settings.theme);
+        document.documentElement.style.setProperty(
+          "--message-spacing",
+          `${settings.messageDensity}em`
+        );
+
+        // Show settings saved notice
+        const notice = document.getElementById("settingsSavedNotice");
+        notice.classList.add("show");
+        setTimeout(() => {
+          notice.classList.remove("show");
+        }, 3000);
+
+        // Show confirmation
+        const confirmation = document.createElement("div");
+        confirmation.className =
+          "message bot-message animate__animated animate__fadeInLeft";
+        confirmation.innerHTML = `
+                <p><i class="fas fa-check-circle"></i> Settings saved successfully!</p>
+                <div class="message-time">${getCurrentTime()}</div>
+                <div class="message-controls">
+                  <button class="message-control-btn" onclick="speakText('Settings saved successfully!')">
+                    <i class="fas fa-volume-up"></i> Read Again
+                  </button>
+                  <button class="message-control-btn" onclick="stopCurrentAction()">
+                    <i class="fas fa-stop"></i> Stop
+                  </button>
+                </div>
+            `;
+        chatBody.appendChild(confirmation);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        // Add to chat history
+        chatHistory.push({
+          role: "bot",
+          content: "Settings saved successfully!",
+          time: getCurrentTime(),
+          controls: `
+            <div class="message-controls">
+              <button class="message-control-btn" onclick="speakText('Settings saved successfully!')">
+                <i class="fas fa-volume-up"></i> Read Again
+              </button>
+              <button class="message-control-btn" onclick="stopCurrentAction()">
+                <i class="fas fa-stop"></i> Stop
+              </button>
+            </div>
+          `,
+        });
+        saveChatHistory();
+
+        // Close settings after a delay
+        setTimeout(() => {
+          settingsModal.style.display = "none";
+        }, 1000);
+      }
+
+      // Apply theme changes
+      function applyTheme(theme) {
+        if (theme === "light") {
+          document.documentElement.style.setProperty(
+            "--primary-dark",
+            "#f8f9fa"
+          );
+          document.documentElement.style.setProperty("--text-light", "#212529");
+          document.documentElement.style.setProperty("--text-dark", "#f8f9fa");
+          document.documentElement.style.setProperty(
+            "--glass-bg",
+            "rgba(0, 0, 0, 0.1)"
+          );
+        } else {
+          document.documentElement.style.setProperty(
+            "--primary-dark",
+            "#1a1a2e"
+          );
+          document.documentElement.style.setProperty("--text-light", "#f8f9fa");
+          document.documentElement.style.setProperty("--text-dark", "#212529");
+          document.documentElement.style.setProperty(
+            "--glass-bg",
+            "rgba(255, 255, 255, 0.15)"
+          );
+        }
+      }
+
+      function testApiConnection() {
+        const statusElement = document.getElementById("apiStatus");
+        statusElement.textContent = "Testing...";
+        statusElement.style.color = "var(--accent-yellow)";
+
+        // Simulate API test (in a real app, this would actually test the connection)
+        setTimeout(() => {
+          statusElement.textContent = "Connected";
+          statusElement.style.color = "var(--accent-yellow)";
+
+          const confirmation = document.createElement("div");
+          confirmation.className =
+            "message bot-message animate__animated animate__fadeInLeft";
+          confirmation.innerHTML = `
+                    <p><i class="fas fa-check-circle"></i> API connection test successful!</p>
+                    <div class="message-time">${getCurrentTime()}</div>
+                    <div class="message-controls">
+                      <button class="message-control-btn" onclick="speakText('API connection test successful!')">
+                        <i class="fas fa-volume-up"></i> Read Again
+                      </button>
+                      <button class="message-control-btn" onclick="stopCurrentAction()">
+                        <i class="fas fa-stop"></i> Stop
+                      </button>
+                    </div>
+                `;
+          chatBody.appendChild(confirmation);
+          chatBody.scrollTop = chatBody.scrollHeight;
+
+          // Add to chat history
+          chatHistory.push({
+            role: "bot",
+            content: "API connection test successful!",
+            time: getCurrentTime(),
+            controls: `
+              <div class="message-controls">
+                <button class="message-control-btn" onclick="speakText('API connection test successful!')">
+                  <i class="fas fa-volume-up"></i> Read Again
+                </button>
+                <button class="message-control-btn" onclick="stopCurrentAction()">
+                  <i class="fas fa-stop"></i> Stop
+                </button>
+              </div>
+            `,
+          });
+          saveChatHistory();
+        }, 1500);
+      }
+
+      function clearCache() {
+        if (
+          confirm(
+            "Are you sure you want to clear all local data? This will reset all settings and clear your chat history."
+          )
+        ) {
+          localStorage.clear();
+          clearChat();
+
+          const confirmation = document.createElement("div");
+          confirmation.className =
+            "message bot-message animate__animated animate__fadeInLeft";
+          confirmation.innerHTML = `
+                    <p><i class="fas fa-check-circle"></i> All local data has been cleared. Settings reset to defaults.</p>
+                    <div class="message-time">${getCurrentTime()}</div>
+                    <div class="message-controls">
+                      <button class="message-control-btn" onclick="speakText('All local data has been cleared. Settings reset to defaults.')">
+                        <i class="fas fa-volume-up"></i> Read Again
+                      </button>
+                      <button class="message-control-btn" onclick="stopCurrentAction()">
+                        <i class="fas fa-stop"></i> Stop
+                      </button>
+                    </div>
+                `;
+          chatBody.appendChild(confirmation);
+          chatBody.scrollTop = chatBody.scrollHeight;
+
+          // Add to chat history
+          chatHistory.push({
+            role: "bot",
+            content:
+              "All local data has been cleared. Settings reset to defaults.",
+            time: getCurrentTime(),
+            controls: `
+              <div class="message-controls">
+                <button class="message-control-btn" onclick="speakText('All local data has been cleared. Settings reset to defaults.')">
+                  <i class="fas fa-volume-up"></i> Read Again
+                </button>
+                <button class="message-control-btn" onclick="stopCurrentAction()">
+                  <i class="fas fa-stop"></i> Stop
+                </button>
+              </div>
+            `,
+          });
+          saveChatHistory();
+
+          // Reload settings
+          loadSettings();
+        }
+      }
+    </script>
+    <script src="teachersDatabase.js"></script>
+    <script src="teachersDisplay.js"></script>
+    <script src="teachersQuery.js"></script>
+    <script src="feesDatabase.js"></script>
+    <script src="feesDisplay.js"></script>
+    <script src="timetableDatabase.js"></script>
+    <script src="timetableDisplay.js"></script>
+    <script src="schoolInfoDatabase.js"></script>
+    <script src="schoolInfoDisplay.js"></script>
+    <script src="schoolInfoQuery.js"></script>
+  </body>
+</html>
